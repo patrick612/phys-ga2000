@@ -3,7 +3,7 @@ import struct
 import timeit
 import matplotlib.pyplot as plt
 
-def quadratic(a, b, c, method_b = False):
+def quadratic_ab(a, b, c, method_b = False):
     x_a_1 = (-b + np.sqrt(np.power(b, 2) - 4*a*c))/(2*a)
     x_a_2 = (-b - np.sqrt(np.power(b, 2) - 4*a*c))/(2*a)
     x_b_1 = (2*c)/(-b - np.sqrt(np.power(b, 2) - 4*a*c))
@@ -21,7 +21,7 @@ root1, root2 = quadratic(0.001, 1000, 0.001)
 root1, root2 = quadratic(0.001, 1000, 0.001, method_b=True)
 
 #c)
-def quadratic_corrected(a, b, c):
+def quadratic(a, b, c):
     if len(str((-b - np.sqrt(np.power(b, 2) - 4*a*c)))) >= len(str(2*a)):
         x1 = (-b + np.sqrt(np.power(b, 2) - 4*a*c))/(2*a)
     else:
