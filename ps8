@@ -1,0 +1,118 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Nov 22 14:48:56 2023
+
+@author: jaewoolee
+"""
+
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+from scipy.integrate import solve_ivp
+
+#problme 1
+piano = pd.read_csv('~/Desktop/NYU_Courses/GA2000/phys-ga2000/ps-8/piano.csv')
+trumpet = pd.read_csv('~/Desktop/NYU_Courses/GA2000/phys-ga2000/ps-8/trumpet.csv')
+
+piano = piano.to_numpy()
+piano = np.concatenate(piano)
+trumpet = trumpet.to_numpy()
+trumpet = np.concatenate(trumpet)
+
+plt.plot(np.linspace(0, 100000/44100, len(piano)), piano)
+plt.xlabel('Time (seconds)')
+plt.ylabel('Amplitude')
+plt.title('Original Waveform of Piano')
+
+piano_fft = np.fft.fft(piano)
+freq = np.fft.fftfreq(piano.shape[-1], d = 1/44100)
+plt.plot(freq[0:10000], piano_fft[0:10000])
+plt.xlabel('Frequency (Hz)')
+plt.ylabel('Amplitude')
+plt.title('FFT of Piano Waveform')
+
+#compare original wave form with inverse fft
+piano_ifft = np.fft.ifft(piano_fft)
+plt.plot(np.linspace(0, 100000/44100, len(piano)), piano_ifft)
+plt.xlabel('Time (seconds)')
+plt.ylabel('Amplitude')
+plt.title('Inverse FFT of Piano Waveform')
+
+
+
+
+plt.plot(np.linspace(0, 100000/44100, len(trumpet)), trumpet)
+plt.xlabel('Time (seconds)')
+plt.ylabel('Amplitude')
+plt.title('Original Waveform of Trumpet')
+
+trumpet_fft = np.fft.fft(trumpet)
+freq = np.fft.fftfreq(trumpet.shape[-1], d = 1/44100)
+plt.plot(freq[0:10000], trumpet_fft[0:10000])
+plt.xlabel('Frequency (Hz)')
+plt.ylabel('Amplitude')
+plt.title('FFT of Trumpet Waveform')
+
+trumpet_ifft = np.fft.ifft(trumpet_fft)
+plt.plot(np.linspace(0, 100000/44100, len(trumpet)), trumpet_ifft)
+plt.xlabel('Frequency')
+plt.ylabel('Amplitude')
+plt.title('Inverse FFT of Trumpet Waveform')
+
+
+
+def FFT_waveform(file_path, instrument, samples_per_sec):
+    waveform = pd.read_csv(file_path)
+    waveform = waveform.to_numpy()
+    waveform = np.concatenate(waveform)
+    wf_fft = np.fft.fft(waveform)
+    
+    freq = np.fft.fftfreq(waveform.shape[-1], d = 1/samples_per_sec)
+    plt.plot(freq[0:10000], wf_fft[0:10000])
+    plt.xlabel('Frequency (Hz)')
+    plt.ylabel('Amplitude')
+    plt.title('FFT of ' + instrument + ' Waveform')
+    return wf_fft, freq
+
+piano_fft, piano_freq = FFT_waveform('~/Desktop/NYU_Courses/GA2000/phys-ga2000/ps-8/piano.csv', 'Piano', 44100)
+trumpet_fft, trumpet_freq = FFT_waveform('~/Desktop/NYU_Courses/GA2000/phys-ga2000/ps-8/trumpet.csv', 'Trumpet', 44100)
+
+#Lets locate what note instruments are playing
+piano_indices = np.where(piano_fft >= 5*10**(7))
+piano_note = piano_freq[piano_indices[0][0]]
+
+trumpet_indices = np.where(trumpet_fft >= 2*10**(7))
+trumpet_note = trumpet_freq[trumpet_indices[0][0]]
+
+print('Frequency of note played by instruments are: ', piano_note, trumpet_note)
+
+
+#Problem 2
+def solve(rho, r, b, t0, tf, x0):
+    def lorentz(t, q):
+        x = q[0]
+        y = q[1]
+        z = q[2]
+        
+        dxdt = rho * (y-x)
+        dydt = r*x - y - x*z
+        dzdt = x*y - b*z
+        return [dxdt, dydt, dzdt]
+    sol = solve_ivp(lorentz, [t0, tf], x0, t_eval=np.linspace(0, tf, 10000))
+    xt = sol.y[0]
+    yt = sol.y[1]
+    zt = sol.y[2]
+    return xt, yt, zt
+
+xt, yt, zt = solve(10, 28, 8/3, 0, 50, [0,1,0])
+
+plt.plot(np.linspace(0, 50, 10000), yt)
+plt.xlabel('Time')
+plt.ylabel('y')
+plt.title('Solution of y of Lorentz equations')
+
+plt.plot(xt, zt)
+plt.xlabel('x(t)')
+plt.ylabel('z(t)')
+plt.title('z vs x of Lorentz equations')
